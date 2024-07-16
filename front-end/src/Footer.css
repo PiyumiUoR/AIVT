@@ -1,0 +1,12 @@
+.app-footer {
+    text-align: center;
+    color: white;
+    background-color: black;
+    padding: 10px;
+  }
+
+  .footer-container {
+      align-items: center;
+      width: 100%;
+  }
+
