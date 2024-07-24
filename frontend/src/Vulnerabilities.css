@@ -1,0 +1,42 @@
+.vulnerability-list {
+  padding: 80px;
+  color: white;
+}
+
+.vulnerability-list h1 {
+  font-size: 2em;
+  margin-bottom: 20px;
+}
+
+.vulnerability-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.vulnerability-list th,
+.vulnerability-list td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.vulnerability-list th {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.vulnerability-list tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.vulnerability-list tr:hover {
+  background-color: #ddd;
+}
+
+.vulnerability-list a {
+  text-decoration: none;
+  color: #007bff;
+}
+
+.vulnerability-list a:hover {
+  text-decoration: underline;
+}
