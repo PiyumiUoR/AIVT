@@ -7,6 +7,8 @@ import Header from './Header';
 import Footer from './Footer';
 import Vulnerabilities from './Vulnerabilities';
 import VulnerabilityDetail from './VulnerabilityDetail';
+import EditVulnerability from './EditVulnerability';
+import DeleteVulnerability from './DeleteVulnerability';
 
 const App = () => {
   const searchRef = useRef(null);
@@ -72,6 +74,8 @@ const App = () => {
           <Route path="/vulnerabilities/add/" element={<ReportVulnerability />} />
           <Route path='/vulnerabilities/' element={<Vulnerabilities />} />
           <Route path="/vulnerabilities/:id/" element={<VulnerabilityDetail />} />
+          <Route path="/vulnerabilities/:id/edit/" element={<EditVulnerability />} />
+          <Route path="/vulnerabilities/:id/delete/" element={<DeleteVulnerability />} />
         </Routes>        
       </div>
     </Router>
