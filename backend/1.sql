@@ -352,46 +352,48 @@ INSERT INTO All_effects (effectTypeId, effectId) VALUES
 select * from All_effects;
 
 SELECT 
-		v.reportId AS id, 
-		v.title, 
-		v.report_description,
-		a.artifactName,
-		a.artifactType,
-		a.developer, 
-		a.deployer, 
-		r.name AS reporterName,
-		r.email AS reporterEmail,
-		r.organization AS reporterOrganization,
-		p.phase,
-		p.phase_description AS phaseDescription,
-		array_agg(DISTINCT an.attributeName) AS attributes,
-		attr.attr_description AS attr_Description,
-		eff.effectName AS effect,
-		eff.eff_description AS eff_Description,
-		array_agg(DISTINCT att.attachments) AS attachments,
-		array_agg(DISTINCT att.filename) AS attachmentFilenames,
-		array_agg(DISTINCT att.mimeType) AS attachmentMimeTypes
-	FROM 
-		Vul_report v
-	JOIN 
-		Artifact a ON v.reportId = a.reportId
-	JOIN 
-		Reporter r ON v.reporterId = r.reporterId
-	JOIN 
-		Vul_phase p ON v.reportId = p.reportId
-	LEFT JOIN 
-		All_attributes aa ON p.phId = aa.attributeTypeId
-	LEFT JOIN 
-		Attribute_names an ON aa.attributeId = an.attributeId
-	LEFT JOIN 
-		Attribute attr ON p.phId = attr.phId
-	LEFT JOIN 
-		Effect eff ON p.phId = eff.phId
-	LEFT JOIN 
-		Attachments att ON a.artifactId = att.artifactId
-	GROUP BY 
-		v.reportId, a.artifactName, a.artifactType, a.developer, a.deployer, r.name, r.email, r.organization, p.phase, p.phase_description, attr.attr_description, eff.effectName, eff.eff_description
+			v.reportId AS id, 
+			v.title, 
+			v.report_description,
+			a.artifactName,
+			a.artifactType,
+			a.developer, 
+			a.deployer, 
+			a.artifactId, 
+			r.name AS reporterName,
+			r.email AS reporterEmail,
+			r.organization AS reporterOrganization,
+			p.phase,
+			p.phase_description AS phaseDescription,
+			array_agg(DISTINCT an.attributeName) AS attributes,
+			attr.attr_description AS attr_Description,
+			eff.effectName AS effect,
+			eff.eff_description AS eff_Description,
+			array_agg(DISTINCT att.attachments) AS attachments,
+			array_agg(DISTINCT att.filename) AS attachmentFilenames,
+			array_agg(DISTINCT att.mimeType) AS attachmentMimeTypes
+		FROM 
+			Vul_report v
+		JOIN 
+			Artifact a ON v.reportId = a.reportId
+		JOIN 
+			Reporter r ON v.reporterId = r.reporterId
+		JOIN 
+			Vul_phase p ON v.reportId = p.reportId
+		LEFT JOIN 
+			All_attributes aa ON p.phId = aa.attributeTypeId
+		LEFT JOIN 
+			Attribute_names an ON aa.attributeId = an.attributeId
+		LEFT JOIN 
+			Attribute attr ON p.phId = attr.phId
+		LEFT JOIN 
+			Effect eff ON p.phId = eff.phId
+		LEFT JOIN 
+			Attachments att ON a.artifactId = att.artifactId
+		GROUP BY 
+			v.reportId, a.artifactName, a.artifactType, a.developer, a.deployer, a.artifactId, r.name, r.email, r.organization, p.phase, p.phase_description, attr.attr_description, eff.effectName, eff.eff_description
 
+	 
 SELECT n.nspname as "Schema",
        t.typname as "Name",
        t.typtype as "Type",
@@ -406,3 +408,5 @@ WHERE t.typname = 'effect_enum';
 SELECT column_name, data_type
 FROM information_schema.columns
 WHERE table_name = 'Effect';
+
+CREATE DATABASE copy_DB WITH TEMPLATE aivtdb OWNER postgres;
