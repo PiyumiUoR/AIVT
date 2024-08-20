@@ -42,6 +42,9 @@ exports.createReport = async (req, res) => {
 
     const attachments = req.files;
 
+    // Get reporterId from authenticated user
+    const reporterId = req.user.id;
+
     // Ensure attributeName is an array
     let attributeTypeArray;
     if (typeof attributeName === 'string') {
@@ -57,11 +60,11 @@ exports.createReport = async (req, res) => {
         await client.query('BEGIN');
 
         // Insert into Reporter
-        const reporterResult = await client.query(
-            'INSERT INTO Reporter (name, email, organization) VALUES ($1, $2, $3) RETURNING reporterId',
-            [name, email, organization]
-        );
-        const reporterId = reporterResult.rows[0].reporterid;
+        // const reporterResult = await client.query(
+        //     'INSERT INTO Reporter (name, email, organization) VALUES ($1, $2, $3) RETURNING reporterId',
+        //     [name, email, organization]
+        // );
+        // const reporterId = reporterResult.rows[0].reporterid;
 
         // Insert into Vul_report
         const reportResult = await client.query(
@@ -156,8 +159,7 @@ exports.createReport = async (req, res) => {
     }
 };
 
-exports.getReportById = async (req, res) => {
-    const { id } = req.params;
+exports.fetchReportById = async (id) => {
     try {
         const result = await pool.query(`
             SELECT 
@@ -169,6 +171,7 @@ exports.getReportById = async (req, res) => {
                 a.developer, 
                 a.deployer, 
                 a.artifactId, 
+                r.reporterId,
                 r.name AS reporterName,
                 r.email AS reporterEmail,
                 r.organization AS reporterOrganization,
@@ -202,14 +205,14 @@ exports.getReportById = async (req, res) => {
             WHERE 
                 v.reportId = $1
             GROUP BY 
-                v.reportId, a.artifactName, a.artifactType, a.developer, a.deployer, a.artifactId, r.name, r.email, r.organization, p.phase, p.phase_description, attr.attr_description, eff.effectName, eff.eff_description
+                v.reportId, a.artifactName, a.artifactType, a.developer, a.deployer, a.artifactId, r.reporterId, r.name, r.email, r.organization, p.phase, p.phase_description, attr.attr_description, eff.effectName, eff.eff_description
         `, [id]);
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Vulnerability not found' });
+            return null;
         }
 
-        const reportData = {
+        return {
             id: result.rows[0].id,
             title: result.rows[0].title,
             report_description: result.rows[0].report_description,
@@ -217,6 +220,7 @@ exports.getReportById = async (req, res) => {
             artifactType: result.rows[0].artifacttype,
             developer: result.rows[0].developer,
             deployer: result.rows[0].deployer,
+            reporterId: result.rows[0].reporterid,
             reporterName: result.rows[0].reportername,
             reporterEmail: result.rows[0].reporteremail,
             reporterOrganization: result.rows[0].reporterorganization,
@@ -231,6 +235,20 @@ exports.getReportById = async (req, res) => {
                 mimeType: result.rows[0].attachmentmimetypes[index]
             }))
         };
+    } catch (err) {
+        console.error(err.message);
+        throw new Error('Database query failed');
+    }
+};
+
+exports.getReportById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const reportData = await exports.fetchReportById(id);
+
+        if (!reportData) {
+            return res.status(404).json({ error: 'Vulnerability not found' });
+        }
 
         res.json(reportData);
     } catch (err) {
@@ -238,6 +256,7 @@ exports.getReportById = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
 
 exports.getAttachment = async (req, res) => {
     const { id, filename } = req.params;
@@ -396,7 +415,6 @@ exports.updateReport = async (req, res) => {
     }
 };
 
-
 exports.deleteReport = async (req, res) => {
     const { id } = req.params;
     const client = await pool.connect();
@@ -431,4 +449,46 @@ exports.deleteReport = async (req, res) => {
     }
 };
 
+exports.searchReports = async (req, res) => {
+    const { query } = req.query;
+  
+    if (!query) {
+      return res.status(400).json({ error: 'Query parameter is required' });
+    }
 
+    // console.log('Search query:', query);
+  
+    try {
+      const result = await pool.query(`
+        SELECT 
+          v.reportId AS id, 
+          v.title, 
+          a.artifactName,
+          r.organization,
+          p.phase,
+          eff.effectName AS effect
+        FROM 
+          Vul_report v
+        JOIN 
+          Artifact a ON v.reportId = a.reportId
+        JOIN 
+          Reporter r ON v.reporterId = r.reporterId
+        JOIN 
+          Vul_phase p ON v.reportId = p.reportId
+        LEFT JOIN 
+          Effect eff ON p.phId = eff.phId
+        WHERE 
+          v.title ILIKE $1 
+          OR a.artifactName ILIKE $1 
+          OR r.organization ILIKE $1 
+          OR p.phase::TEXT ILIKE $1   -- ENUM to text
+          OR eff.effectName::TEXT ILIKE $1  -- ENUM to text
+      `, [`%${query}%`]);
+  
+      res.json(result.rows);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+  

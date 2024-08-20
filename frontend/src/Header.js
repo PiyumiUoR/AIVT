@@ -1,24 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Header.css'; 
-import LoginModal from './LoginModal';
-import SignupModal from './SignupModal';
+import axios from 'axios';
 
 const Header = ({ scrollToWelcome }) => {
     const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
-    const [isLoginOpen, setIsLoginOpen] = useState(false);
-    const [isSignupOpen, setIsSignupOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState(''); 
+    const [searchResults, setSearchResults] = useState([]);
     const searchBarRef = useRef(null);
+    const navigate = useNavigate();
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        setIsLoggedIn(!!token); 
+    }, []);
 
     const toggleSearchBar = () => {
         setIsSearchBarVisible(prevState => !prevState);
     };
-
-    const openLoginModal = () => setIsLoginOpen(true);
-    const closeLoginModal = () => setIsLoginOpen(false);
-
-    const openSignupModal = () => setIsSignupOpen(true);
-    const closeSignupModal = () => setIsSignupOpen(false);
 
     const handleClickOutside = (event) => {
         if (searchBarRef.current && !searchBarRef.current.contains(event.target)) {
@@ -37,62 +37,115 @@ const Header = ({ scrollToWelcome }) => {
         };
     }, [isSearchBarVisible]);
 
+    const handleLogout = () => {
+        if (isLoggedIn) { 
+            localStorage.removeItem('token');  
+            setIsLoggedIn(false);  
+            navigate('/');  
+        }
+    };
+
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value); 
+    };
+
+    const handleSearchSubmit = async (e) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            try {
+                const response = await axios.get(`/api/vulnerabilities/search/`, { params: { query: searchQuery } });
+                setSearchResults(response.data);
+            } catch (err) {
+                console.error('Error fetching search results:', err);
+            }
+        }
+    };
+
+    const handleResultClick = () => {
+        setIsSearchBarVisible(false);
+    };
+
     return (
         <header className="app-header">
             <div className="header-container">
                 <div className="logo-container">
                     <h1 className="logo">AIVT</h1>
                 </div>
-                <nav className="nav-buttons">
-                    <Link to="/" className="nav-button" onClick={scrollToWelcome}>
-                        <i className="fas fa-home"></i> Home
-                    </Link>
-                    <Link to="/vulnerabilities/" className="nav-button">
-                        <i className="fas fa-database"></i> Database
-                    </Link>
-                    <Link to="/community/" className="nav-button">
-                        <i className="fas fa-users"></i> Community
-                    </Link>
-                    <Link to="/faq/" className="nav-button">
-                        <i className="fas fa-question"></i> FAQ
-                    </Link>
-                    <button className="nav-button" onClick={toggleSearchBar}>
-                        <i className="fas fa-search"></i> Search
-                    </button>
-                    <Link to="/docs/" className="nav-button">
-                        <i className="fas fa-file"></i> Docs 
-                    </Link>
-                </nav>
                 <div className="header-icons">
-                    <span className="icon user-icon">
+                    <Link to="/" className="icon home-icon" onClick={scrollToWelcome}>
+                        <i className="fas fa-home"></i> 
+                        <span className="hover-text">Home</span>
+                    </Link>
+                    <Link to="/vulnerabilities/" className="icon db-icon">
+                        <i className="fas fa-database"></i> 
+                        <span className="hover-text">Database</span>
+                    </Link>
+                    <Link to="/community/" className="icon people">
+                        <i className="fas fa-users"></i> 
+                        <span className="hover-text">Community</span>
+                    </Link>
+                    <Link to="/faq/" className="icon faq">
+                        <i className="fas fa-question"></i> 
+                        <span className="hover-text">FAQ</span>
+                    </Link>
+                    <button className="icon search" onClick={toggleSearchBar}>
+                        <i className="fas fa-search"></i> 
+                        <span className="hover-text">Search</span>
+                    </button>
+                    <Link to="/docs/" className="icon docs">
+                        <i className="fas fa-file"></i>  
+                        <span className="hover-text">Docs</span>
+                    </Link>
+                    <Link to="/login" className="icon user-icon">
                         <i className="fas fa-user"></i>
-                        <span className="hover-text">
-                            <span className='auth-link' onClick={openLoginModal}>
-                                Login
-                            </span> / 
-                            <span className='auth-link' onClick={openSignupModal}>
-                                Sign up
-                            </span>
-                        </span>
-                    </span>
-                    <span className="icon db-icon">
+                        <span className="hover-text">Login</span>
+                    </Link>
+                    <span className="icon bell-icon">
                         <i className="fas fa-bell"></i>
                         <span className="hover-text">Notifications</span>
                     </span>
                     <span className="icon git-icon">
                         <i className="fab fa-github"></i>
                         <span className="hover-text">Git repo</span>
-                    </span>            
+                    </span>  
+                    {/* <button className="icon logout-icon" onClick={handleLogout}>
+                        <i className="fas fa-sign-out-alt"></i>
+                        <span className="hover-text">Logout</span>
+                    </button>           */}
+                    <button 
+                        className="icon logout-icon" 
+                        onClick={handleLogout} 
+                        disabled={!isLoggedIn} /* Disable button if not logged in */
+                        style={{ opacity: isLoggedIn ? 1 : 0.5, cursor: isLoggedIn ? 'pointer' : 'not-allowed' }}
+                    >
+                        <i className="fas fa-sign-out-alt"></i>
+                        <span className="hover-text">Logout</span>
+                    </button> 
                 </div>
             </div>
             {isSearchBarVisible && (
                 <div className="search-bar" ref={searchBarRef}>
-                    <input type="text" placeholder="Search for vulnerability" className="vulnerability-search" />
+                    <form onSubmit={handleSearchSubmit}>
+                        <input 
+                            type="text" 
+                            placeholder="Search for vulnerability" 
+                            className="vulnerability-search" 
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                        />
+                        <button type="submit">Search</button>
+                    </form>
+                    <div className="search-results">
+                        {searchResults.map(result => (
+                            <div key={result.id} className="search-result-item">
+                                <Link to={`/vulnerabilities/${result.id}`} onClick={handleResultClick}>
+                                    {result.title}
+                                </Link>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
-
-            <LoginModal isOpen={isLoginOpen} onRequestClose={closeLoginModal} />
-            <SignupModal isOpen={isSignupOpen} onRequestClose={closeSignupModal} />
         </header>
     );
 };

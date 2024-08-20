@@ -1,22 +1,16 @@
 .app-header {
-  background-color: #333;
-  color: white;
-  padding: 10px;
-  position: relative;
-  font-family: Monaco, monospace; 
+  background-color: #dadada; /* Darker shade for professionalism */
+  color: black;
+  padding: 0 30px; /* Add more padding for better spacing */
   position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
-  width: 100%;
-  display: flex;
-
-  /* background-color: #1f1f1f;
-  padding: 5px 10px;
-  color: white;
   display: flex;
   align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 1000; */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  font-family: Monaco, monospace; 
 }
 
 .header-container {
@@ -24,76 +18,75 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  margin: auto;
 }
 
 .logo-container {
-  display: flex;
   flex: 1;
-  align-items: center;
 }
 
 .logo {
-  margin: 0;
-  font-size: 24px;
+  font-size: 28px; 
+  font-weight: bold;
+  text-align: left; 
 }
 
 .nav-buttons {
   display: flex;
-  /* justify-content: space-around; */
-  margin: auto;
-  gap: 10px;
+  gap: 20px; 
 }
 
 .nav-button {
   color: white;
   text-decoration: none;
-  background-color: #333;
-  border: none;
-  padding: 10px 20px;
+  background-color: transparent; 
+  border: 1px solid transparent; 
+  padding: 8px 16px;
+  border-radius: 4px; 
   cursor: pointer;
-  font-family: inherit; 
-  font-size: 16px; 
+  font-size: 16px;
+  transition: background-color 0.3s, border-color 0.3s; 
 }
 
 .nav-button:hover {
-  background-color: orange;
+  background-color: #2980b9; 
+  border-color: #2980b9; 
 }
 
 .header-icons {
-  flex: 1;
   display: flex;
   align-items: center;
-  /* justify-content: flex-end; */
+  gap: 15px;
 }
 
 .header-icons .icon {
   position: relative;
-  margin-left: 10px;
   cursor: pointer;
 }
 
-.header-icons .user-icon .hover-text,
-.header-icons .db-icon .hover-text,
-.header-icons .git-icon .hover-text {
+.header-icons .icon .hover-text {
   visibility: hidden;
   opacity: 0;
-  width: 110px;
-  background-color: #333;
+  width: 100px;
+  background-color: #2c3e50; 
   color: #fff;
   text-align: center;
-  border-radius: 5px;
-  padding: 0;
+  border-radius: 4px;
+  padding: 5px;
   position: absolute;
   z-index: 1;
-  top: 125%;
+  top: 120%;
   left: 50%;
-  margin-left: -50px;
+  transform: translateX(-50%);
   transition: opacity 0.3s;
 }
 
-.header-icons .user-icon .hover-text::after,
-.header-icons .db-icon .hover-text::after,
-.header-icons .git-icon .hover-text::after {
+.header-icons .icon:hover .hover-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.header-icons .icon:hover .hover-text::after {
   content: '';
   position: absolute;
   bottom: 100%;
@@ -101,43 +94,60 @@
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: #333 transparent transparent transparent;
-}
-
-.header-icons .user-icon:hover .hover-text,
-.header-icons .db-icon:hover .hover-text,
-.header-icons .git-icon:hover .hover-text {
-  visibility: visible;
-  opacity: 1;
+  border-color: transparent transparent #2c3e50 transparent;
 }
 
 .search-bar {
   position: absolute;
   top: 100%;
-  left: 25%;
+  left: 50%;
+  transform: translateX(-50%); 
   width: 50%;
   background-color: white;
   padding: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 4px; 
+  z-index: 1001; 
 }
 
 .vulnerability-search {
   border: 1px solid #ccc;
   border-radius: 4px;
   width: 100%;
-  padding: 8px; 
-  font-size: 12px; 
-  background-color: #f9f9f9; 
-  color: #333; 
-  font-family: inherit; 
+  font-size: 14px; 
+  background-color: #f9f9f9;
+  color: #333;
+  font-family: inherit;
 }
 
 .vulnerability-search:focus {
-  border-color: orange; 
-  outline: none; 
+  border-color: #2980b9; 
+  outline: none;
   background-color: #fff;
 }
 
 ::placeholder {
-  color: #aaa; /* Style placeholder text */
+  color: #aaa; 
+}
+
+.search-results {
+  margin-top: 10px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.search-result-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.search-result-item a {
+  text-decoration: none;
+  color: #333;
+}
+
+.search-result-item a:hover {
+  text-decoration: underline;
 }

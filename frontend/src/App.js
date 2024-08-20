@@ -3,12 +3,15 @@ import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import './App.css'; 
 import ReportVulnerability from './ReportVulnerability';
-import Header from './Header';
-import Footer from './Footer';
-import Vulnerabilities from './Vulnerabilities';
-import VulnerabilityDetail from './VulnerabilityDetail';
 import EditVulnerability from './EditVulnerability';
 import DeleteVulnerability from './DeleteVulnerability';
+import Vulnerabilities from './Vulnerabilities';
+import VulnerabilityDetail from './VulnerabilityDetail';
+import ProtectedRoute from './ProtectedRoute'; // authentication
+import Login from './Login';
+import Signup from './Signup';
+import Header from './Header';
+import Footer from './Footer';
 
 const App = () => {
   const searchRef = useRef(null);
@@ -21,17 +24,6 @@ const App = () => {
       welcomeRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
-
-  // const getData=async() => {
-  //   const response= await Axios.get
-  // }
-
-  // useEffect(() => {
-  //   fetch('/api/vulnerabilities/count/')
-  //     .then(response => response.json())
-  //     .then(data => setTotalRecords(data.count))
-  //     .catch(error => console.error('Error fetching total records:', error));
-  // }, []);
 
   return (
     <Router>
@@ -71,11 +63,18 @@ const App = () => {
               </div>
             </main>
           } />
-          <Route path="/vulnerabilities/add/" element={<ReportVulnerability />} />
           <Route path='/vulnerabilities/' element={<Vulnerabilities />} />
           <Route path="/vulnerabilities/:id/" element={<VulnerabilityDetail />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+
+          <Route path="/vulnerabilities/add/" element={<ProtectedRoute element={ReportVulnerability} />} />
+          <Route path="/vulnerabilities/:id/edit/" element={<ProtectedRoute element={EditVulnerability} />} />
+          <Route path="/vulnerabilities/:id/delete/" element={<ProtectedRoute element={DeleteVulnerability} />} />
+
+          {/* <Route path="/vulnerabilities/add/" element={<ReportVulnerability />} />
           <Route path="/vulnerabilities/:id/edit/" element={<EditVulnerability />} />
-          <Route path="/vulnerabilities/:id/delete/" element={<DeleteVulnerability />} />
+          <Route path="/vulnerabilities/:id/delete/" element={<DeleteVulnerability />} /> */}          
         </Routes>        
       </div>
     </Router>
