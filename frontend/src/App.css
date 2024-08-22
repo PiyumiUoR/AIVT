@@ -1,7 +1,8 @@
 body {
   margin: 0;
   font-family: Monaco, monospace;
-  background-color: black;
+  background-color: #121212;
+  color: #e0e0e0;
   }
 
   .app {
@@ -10,102 +11,6 @@ body {
     height: 100vh;
   }
 
-  /* .app-header {
-    background-color: #1f1f1f;
-    padding: 5px 10px;
-    color: white;
-    display: flex;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-  }
-
-  .header-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-
-  .logo-container {
-    display: flex;
-    align-items: center;
-  }
-
-  .logo {
-    font-size: 24px;
-    margin: 0;
-  }
-
-  .nav-buttons {
-    display: flex;
-    gap: 10px;
-  }
-
-  .nav-button {
-    background-color: #333;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-
-  .nav-button:hover {
-    background-color: orange;
-  }
-
-  .header-icons {
-    display: flex;
-    align-items: center;
-  }
-
-  .header-icons .icon {
-    position: relative;
-    margin-left: 10px;
-    cursor: pointer;
-  }
-
-  .header-icons .user-icon .hover-text,
-  .header-icons .db-icon .hover-text,
-  .header-icons .git-icon .hover-text {
-    visibility: hidden;
-    opacity: 0;
-    width: 110px;
-    background-color: #333;
-    color: #fff;
-    text-align: center;
-    border-radius: 5px;
-    padding: 0;
-    position: absolute;
-    z-index: 1;
-    top: 125%; 
-    left: 50%;
-    margin-left: -50px;
-    transition: opacity 0.3s;
-  }
-
-  .header-icons .user-icon .hover-text::after,
-  .header-icons .db-icon .hover-text::after,
-  .header-icons .git-icon .hover-text::after {
-    content: '';
-    position: absolute;
-    bottom: 100%; 
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: #333 transparent transparent transparent;
-  }
-
-  .header-icons .user-icon:hover .hover-text,
-  .header-icons .db-icon:hover .hover-text,
-  .header-icons .git-icon:hover .hover-text {
-    visibility: visible;
-    opacity: 1;
-  } */
-
   .app-main {
     display: flex;
     flex: 1;
@@ -113,6 +18,10 @@ body {
 
   .content {
     flex: 1;
+  }
+
+  .logo-link {
+    text-decoration: none;
   }
 
   .welcome-section {
@@ -197,7 +106,6 @@ body {
     text-align: center;
     font-size: 24px;
     padding: 20px;
-    /* width: 220px; */
     transition: all 0.5s;
     margin: 5px;
     font-family: Monaco, monospace;

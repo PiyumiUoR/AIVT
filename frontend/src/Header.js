@@ -22,7 +22,7 @@ const Header = ({ scrollToWelcome }) => {
             })
             .then(response => {
                 const userData = response.data;
-                setUser(userData); // Update user state here
+                setUser(userData); 
             })
             .catch(error => {
                 console.error('Error fetching user data:', error);
@@ -87,11 +87,31 @@ const Header = ({ scrollToWelcome }) => {
         setSearchQuery(e.target.value); 
     };
 
+    const validateSearchQuery = (query) => {
+        const regex = /^[a-zA-Z0-9 ]*$/;
+        return regex.test(query);
+    };
+
+    const sanitizeInput = (input) => {
+        return input.replace(/<[^>]*>/g, ''); // Strip HTML tags
+    };
+
+    const sanitizeHtml = (input) => {
+        const element = document.createElement('div');
+        element.innerText = input;
+        return element.innerHTML;
+    };
+
     const handleSearchSubmit = async (e) => {
         e.preventDefault();
-        if (searchQuery.trim()) {
+        let sanitizedQuery = sanitizeInput(searchQuery); 
+        if (sanitizedQuery.trim()) {
+            if (!validateSearchQuery(sanitizedQuery)) {
+                alert('Invalid search query. Please use only letters and numbers.');
+                return;
+            }
             try {
-                const response = await axios.get(`/api/vulnerabilities/search/`, { params: { query: searchQuery } });
+                const response = await axios.get(`/api/vulnerabilities/search/`, { params: { query: sanitizedQuery } });
                 setSearchResults(response.data);
             } catch (err) {
                 console.error('Error fetching search results:', err);
@@ -107,7 +127,9 @@ const Header = ({ scrollToWelcome }) => {
         <header className="app-header">
             <div className="header-container">
                 <div className="logo-container">
+                <Link to="/" className="logo-link">
                     <h1 className="logo">AIVT</h1>
+                </Link>
                 </div>
                 <div className="header-icons">
                     <Link to="/" className="icon home-icon" onClick={scrollToWelcome}>
@@ -177,7 +199,7 @@ const Header = ({ scrollToWelcome }) => {
                         {searchResults.map(result => (
                             <div key={result.id} className="search-result-item">
                                 <Link to={`/vulnerabilities/${result.id}`} onClick={handleResultClick}>
-                                    {result.title}
+                                    {sanitizeHtml(result.title)}
                                 </Link>
                             </div>
                         ))}
