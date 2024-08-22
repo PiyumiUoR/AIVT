@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Header.css'; 
 import axios from 'axios';
@@ -7,14 +7,60 @@ const Header = ({ scrollToWelcome }) => {
     const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState(''); 
     const [searchResults, setSearchResults] = useState([]);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [user, setUser] = useState(null);
     const searchBarRef = useRef(null);
     const navigate = useNavigate();
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    const syncTokenState = useCallback(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            axios.get('/api/auth/current-user', {
+                headers: {
+                    Authorization: `Bearer ${token}` 
+                }
+            })
+            .then(response => {
+                const userData = response.data;
+                setUser(userData); // Update user state here
+            })
+            .catch(error => {
+                console.error('Error fetching user data:', error);
+            });
+            setIsLoggedIn(true);
+        } else {
+            setUser(null);
+            setIsLoggedIn(false);
+        }
+    }, []);    
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        setIsLoggedIn(!!token); 
-    }, []);
+        syncTokenState();
+    }, [syncTokenState]);
+
+    useEffect(() => {
+        const handleStorageChange = () => {
+            syncTokenState();
+        };
+    
+        window.addEventListener('storage', handleStorageChange);
+    
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
+    }, [syncTokenState]);    
+
+    const handleLogout = () => {
+        if (isLoggedIn) { 
+            localStorage.removeItem('token');  
+            localStorage.removeItem('user'); 
+            setIsLoggedIn(false);
+            setUser(null);
+            window.location.reload();
+            syncTokenState(); 
+            navigate('/login');
+        }
+    };
 
     const toggleSearchBar = () => {
         setIsSearchBarVisible(prevState => !prevState);
@@ -36,14 +82,6 @@ const Header = ({ scrollToWelcome }) => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isSearchBarVisible]);
-
-    const handleLogout = () => {
-        if (isLoggedIn) { 
-            localStorage.removeItem('token');  
-            setIsLoggedIn(false);  
-            navigate('/');  
-        }
-    };
 
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value); 
@@ -88,17 +126,16 @@ const Header = ({ scrollToWelcome }) => {
                         <i className="fas fa-question"></i> 
                         <span className="hover-text">FAQ</span>
                     </Link>
-                    <button className="icon search" onClick={toggleSearchBar}>
-                        <i className="fas fa-search"></i> 
-                        <span className="hover-text">Search</span>
-                    </button>
                     <Link to="/docs/" className="icon docs">
                         <i className="fas fa-file"></i>  
                         <span className="hover-text">Docs</span>
                     </Link>
-                    <Link to="/login" className="icon user-icon">
+                    <Link 
+                        to={isLoggedIn ? `/reporters/${user?.id}` : '/login'} 
+                        className="icon user-icon"
+                    >
                         <i className="fas fa-user"></i>
-                        <span className="hover-text">Login</span>
+                        <span className="hover-text">{isLoggedIn ? user?.name : 'Login'}</span>
                     </Link>
                     <span className="icon bell-icon">
                         <i className="fas fa-bell"></i>
@@ -108,19 +145,20 @@ const Header = ({ scrollToWelcome }) => {
                         <i className="fab fa-github"></i>
                         <span className="hover-text">Git repo</span>
                     </span>  
-                    {/* <button className="icon logout-icon" onClick={handleLogout}>
-                        <i className="fas fa-sign-out-alt"></i>
-                        <span className="hover-text">Logout</span>
-                    </button>           */}
-                    <button 
-                        className="icon logout-icon" 
-                        onClick={handleLogout} 
-                        disabled={!isLoggedIn} /* Disable button if not logged in */
-                        style={{ opacity: isLoggedIn ? 1 : 0.5, cursor: isLoggedIn ? 'pointer' : 'not-allowed' }}
-                    >
-                        <i className="fas fa-sign-out-alt"></i>
-                        <span className="hover-text">Logout</span>
-                    </button> 
+                    <Link className="icon search" onClick={toggleSearchBar}>
+                        <i className="fas fa-search"></i> 
+                        <span className="hover-text">Search</span>
+                    </Link>
+                    {isLoggedIn && (
+                        <Link 
+                            className="icon logout-icon" 
+                            onClick={handleLogout} 
+                            style={{ opacity: 1, cursor: 'pointer' }}
+                        >
+                            <i className="fas fa-sign-out-alt"></i>
+                            <span className="hover-text">Logout</span>
+                        </Link>
+                    )}
                 </div>
             </div>
             {isSearchBarVisible && (
