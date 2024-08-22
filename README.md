@@ -2,16 +2,6 @@
 
 Welcome to AIVT, the AI Vulnerability Taxonomy Database. We are dedicated to identifying, analyzing, and mitigating vulnerabilities in AI systems to ensure their safety, security, and reliability. Our mission is to provide a comprehensive and accessible platform for reporting and sharing information about AI vulnerabilities, fostering a collaborative community among AI developers, researchers, and users.
 
-## Prerequisites
-
-Before deploying the AIVT system, ensure that your environment meets the following prerequisites:
-
-* Ubuntu 20.04 or later
-* Node.js and npm
-* PostgreSQL
-* Nginx
-* PM2
-
 ## Deploying the system in local machine 
 
 ### Prerequisites
@@ -370,11 +360,11 @@ npm -v
    \c aivtdb
    ```
 
-   Create the required ENUM types and tables with the SQL shown in [here.]()****************************
+   Create the required ENUM types and tables with the SQL shown in [Deploying the database](#deploying-the-database).
 
 4. **Set Up the Backend to Use the Database:**
 
-   Edit the `.env` file with a secret token value. The steps are shown in [here.](). Here's how you generate the 
+   Edit the `.env` file with a secret token value. The steps are shown in [Create the secret token](#create-the-secret-token).
 
 #### Step 7: Monitor and Manage Services
 
@@ -401,8 +391,4 @@ npm -v
 
    - Access the frontend via your IP as `http://your_ip/.
    - Ensure the backend is running properly.
-   - Verify that Nginx is correctly proxying requests to the backend.
-
-
-
-                  
+   - Verify that Nginx is correctly proxying requests to the backend.                  
