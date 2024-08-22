@@ -45,7 +45,6 @@ const Signup = () => {
     const handleSignup = async (e) => {
         e.preventDefault();
 
-        // Validate the form before submitting
         const validationErrors = validateForm();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
@@ -65,6 +64,7 @@ const Signup = () => {
             if (response.ok) {
                 localStorage.setItem('token', data.token);
                 navigate('/');  
+                window.location.reload();
             } else {
                 setErrors({ general: data.message || 'Failed to sign up' });
             }
