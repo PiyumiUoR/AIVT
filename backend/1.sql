@@ -28,18 +28,39 @@ CREATE TABLE Reporter (
     email VARCHAR(255),
     organization VARCHAR(255),
 	salt VARCHAR(255),
-	password VARCHAR(255)
+	password VARCHAR(255),
+	role VARCHAR(50) DEFAULT 'reporter',
 );
 
 ALTER TABLE Reporter
 	ADD COLUMN salt VARCHAR(255);
 
+ALTER TABLE Reporter ADD COLUMN role VARCHAR(50) DEFAULT 'reporter';
+
+ALTER TABLE Vul_report
+ADD COLUMN date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE Vul_report ADD COLUMN approval_status VARCHAR(50) DEFAULT 'pending';
+
+-- Create table Admin_review
+CREATE TABLE Admin_review (
+    reviewId SERIAL PRIMARY KEY,
+    reportId INTEGER,
+    adminId INTEGER,
+    review_comments VARCHAR(510),
+    review_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (reportId) REFERENCES Vul_report(reportId),
+    FOREIGN KEY (adminId) REFERENCES Reporter(reporterId) -- Assuming admins are also stored in the Reporter table
+);
+
 -- Create table Vul_report
 CREATE TABLE Vul_report (
     reportId SERIAL PRIMARY KEY,
+	date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     title VARCHAR(255),
     report_description VARCHAR(510),
     reporterId INTEGER, 
+	approval_status VARCHAR(50) DEFAULT 'pending',
     FOREIGN KEY (reporterId) REFERENCES Reporter(reporterId)
 );
 
@@ -145,6 +166,8 @@ VALUES
 ('Jane Smith', 'jane.smith@example.com', 'SecureTech');
 
 SELECT * FROM 	Reporter;
+
+UPDATE Reporter SET role = 'admin' WHERE reporterId = 28 RETURNING *
 
 -- Sample data for Vul_report
 INSERT INTO Vul_report (title, report_description, reporterId)
@@ -357,47 +380,49 @@ INSERT INTO All_effects (effectTypeId, effectId) VALUES
 select * from All_effects;
 
 SELECT 
-                v.reportId AS id, 
-                v.title, 
-                v.report_description,
-                a.artifactName,
-                a.artifactType,
-                a.developer, 
-                a.deployer, 
-                a.artifactId, 
-                r.reporterId,
-                r.name AS reporterName,
-                r.email AS reporterEmail,
-                r.organization AS reporterOrganization,
-                p.phase,
-                p.phase_description AS phaseDescription,
-                array_agg(DISTINCT an.attributeName) AS attributes,
-                attr.attr_description AS attr_Description,
-                eff.effectName AS effect,
-                eff.eff_description AS eff_Description,
-                array_agg(DISTINCT att.attachments) AS attachments,
-                array_agg(DISTINCT att.filename) AS attachmentFilenames,
-                array_agg(DISTINCT att.mimeType) AS attachmentMimeTypes
-            FROM 
-                Vul_report v
-            JOIN 
-                Artifact a ON v.reportId = a.reportId
-            JOIN 
-                Reporter r ON v.reporterId = r.reporterId
-            JOIN 
-                Vul_phase p ON v.reportId = p.reportId
-            LEFT JOIN 
-                All_attributes aa ON p.phId = aa.attributeTypeId
-            LEFT JOIN 
-                Attribute_names an ON aa.attributeId = an.attributeId
-            LEFT JOIN 
-                Attribute attr ON p.phId = attr.phId
-            LEFT JOIN 
-                Effect eff ON p.phId = eff.phId
-            LEFT JOIN 
-                Attachments att ON a.artifactId = att.artifactId
-            GROUP BY 
-                v.reportId, a.artifactName, a.artifactType, a.developer, a.deployer, a.artifactId, r.reporterId, r.name, r.email, r.organization, p.phase, p.phase_description, attr.attr_description, eff.effectName, eff.eff_description
+	v.reportId AS id, 
+	v.title, 
+	v.report_description,
+	v.approval_status AS status,
+	a.artifactName,
+	a.artifactType,
+	a.developer, 
+	a.deployer, 
+	a.artifactId, 
+	r.reporterId,
+	r.name AS reporterName,
+	r.email AS reporterEmail,
+	r.organization AS reporterOrganization,
+	p.phase,
+	p.phase_description AS phaseDescription,
+	array_agg(DISTINCT an.attributeName) AS attributes,
+	attr.attr_description AS attr_Description,
+	eff.effectName AS effect,
+	eff.eff_description AS eff_Description,
+	array_agg(DISTINCT att.attachments) AS attachments,
+	array_agg(DISTINCT att.filename) AS attachmentFilenames,
+	array_agg(DISTINCT att.mimeType) AS attachmentMimeTypes
+	
+FROM 
+	Vul_report v
+JOIN 
+	Artifact a ON v.reportId = a.reportId
+JOIN 
+	Reporter r ON v.reporterId = r.reporterId
+JOIN 
+	Vul_phase p ON v.reportId = p.reportId
+LEFT JOIN 
+	All_attributes aa ON p.phId = aa.attributeTypeId
+LEFT JOIN 
+	Attribute_names an ON aa.attributeId = an.attributeId
+LEFT JOIN 
+	Attribute attr ON p.phId = attr.phId
+LEFT JOIN 
+	Effect eff ON p.phId = eff.phId
+LEFT JOIN 
+	Attachments att ON a.artifactId = att.artifactId
+GROUP BY 
+	v.reportId, v.status, a.artifactName, a.artifactType, a.developer, a.deployer, a.artifactId, r.reporterId, r.name, r.email, r.organization, p.phase, p.phase_description, attr.attr_description, eff.effectName, eff.eff_description
         
 	 
 SELECT n.nspname as "Schema",
@@ -416,3 +441,44 @@ FROM information_schema.columns
 WHERE table_name = 'Effect';
 
 CREATE DATABASE copy_DB WITH TEMPLATE aivtdb OWNER postgres;
+
+SELECT 
+	vr.reportId AS id, 
+	vr.title, 
+	a.artifactName, 
+	vr.date_added, 
+	e.effectName, 
+	vp.phase, 
+	array_agg(DISTINCT an.attributeName) AS attributes
+FROM Vul_report vr
+JOIN Artifact a ON vr.reportId = a.reportId
+JOIN Vul_phase vp ON vr.reportId = vp.reportId
+JOIN Effect e ON vp.phId = e.phId
+LEFT JOIN Attribute at ON vp.phId = at.phId
+LEFT JOIN All_attributes aa ON at.attributeTypeId = aa.attributeTypeId
+LEFT JOIN Attribute_names an ON aa.attributeId = an.attributeId
+GROUP BY 
+    vr.reportId, 
+    vr.title, 
+    a.artifactName, 
+    vr.date_added, 
+    e.effectName, 
+    vp.phase;
+
+SELECT 
+	vr.reportId AS id, 
+	vr.title, 
+	a.artifactName, 
+	vr.date_added, 
+	e.effectName, 
+	vp.phase, 
+	array_agg(DISTINCT an.attributeName) AS attributes
+FROM Vul_report vr
+JOIN Artifact a ON vr.reportId = a.reportId
+JOIN Vul_phase vp ON vr.reportId = vp.reportId
+JOIN Effect e ON vp.phId = e.phId
+LEFT JOIN Attribute at ON vp.phId = at.phId
+LEFT JOIN All_attributes aa ON at.attributeTypeId = aa.attributeTypeId
+LEFT JOIN Attribute_names an ON aa.attributeId = an.attributeId
+        WHERE 1=1
+

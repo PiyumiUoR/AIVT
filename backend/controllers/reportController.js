@@ -1,31 +1,81 @@
 const pool = require('../config/database'); 
+const { fetchUserById } = require('../controllers/userController');
 const path = require('path');
 const fs = require('fs');
+const jwt = require('jsonwebtoken');
 
 exports.getAllReports = async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT 
-        v.reportId AS id, 
-        v.title, 
-        a.artifactName 
-      FROM 
-        Vul_report v
-      JOIN 
-        Artifact a ON v.reportId = a.reportId
-    `);
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+    const { phase, attribute, effect, startDate, endDate } = req.query;
+
+    let query = `
+        SELECT 
+            vr.reportId AS id, 
+            vr.title, 
+            a.artifactName, 
+            vr.date_added, 
+            e.effectName, 
+            vp.phase, 
+            array_agg(DISTINCT an.attributeName) AS attributes,
+            vr.approval_status
+        FROM Vul_report vr
+        JOIN Artifact a ON vr.reportId = a.reportId
+        JOIN Vul_phase vp ON vr.reportId = vp.reportId
+        JOIN Effect e ON vp.phId = e.phId
+        LEFT JOIN Attribute at ON vp.phId = at.phId
+        LEFT JOIN All_attributes aa ON at.attributeTypeId = aa.attributeTypeId
+        LEFT JOIN Attribute_names an ON aa.attributeId = an.attributeId
+        WHERE vr.approval_status = 'approved'
+    `;
+
+    const params = [];
+    
+    if (phase) {
+        query += ` AND vp.phase = $${params.length + 1}`;
+        params.push(phase);
+    }
+    
+    if (attribute) {
+        query += ` AND an.attributeName = $${params.length + 1}`;
+        params.push(attribute);
+    }
+
+    if (effect) {
+        query += ` AND e.effectName = $${params.length + 1}`;
+        params.push(effect);
+    }
+
+    if (startDate) {
+        query += ` AND vr.date_added >= $${params.length + 1}`;
+        params.push(startDate);
+    }
+
+    if (endDate) {
+        query += ` AND vr.date_added <= $${params.length + 1}`;
+        params.push(endDate);
+    }
+
+    query += `
+        GROUP BY 
+            vr.reportId, 
+            vr.title, 
+            a.artifactName, 
+            vr.date_added, 
+            e.effectName, 
+            vp.phase
+    `;
+
+    try {
+        const result = await pool.query(query, params);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 };
+
 
 exports.createReport = async (req, res) => {
     const {
-        name,
-        email,
-        organization,
         title,
         report_description,
         artifactName,
@@ -58,13 +108,6 @@ exports.createReport = async (req, res) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
-
-        // Insert into Reporter
-        // const reporterResult = await client.query(
-        //     'INSERT INTO Reporter (name, email, organization) VALUES ($1, $2, $3) RETURNING reporterId',
-        //     [name, email, organization]
-        // );
-        // const reporterId = reporterResult.rows[0].reporterid;
 
         // Insert into Vul_report
         const reportResult = await client.query(
@@ -455,18 +498,18 @@ exports.searchReports = async (req, res) => {
     if (!query) {
       return res.status(400).json({ error: 'Query parameter is required' });
     }
-
-    // console.log('Search query:', query);
   
     try {
       const result = await pool.query(`
         SELECT 
           v.reportId AS id, 
           v.title, 
+          v.date_added,
           a.artifactName,
           r.organization,
           p.phase,
-          eff.effectName AS effect
+          eff.effectName AS effect,
+          array_agg(DISTINCT an.attributeName) AS attributes
         FROM 
           Vul_report v
         JOIN 
@@ -477,12 +520,26 @@ exports.searchReports = async (req, res) => {
           Vul_phase p ON v.reportId = p.reportId
         LEFT JOIN 
           Effect eff ON p.phId = eff.phId
+        LEFT JOIN 
+          Attribute at ON p.phId = at.phId
+        LEFT JOIN 
+          All_attributes aa ON at.attributeTypeId = aa.attributeTypeId
+        LEFT JOIN 
+          Attribute_names an ON aa.attributeId = an.attributeId
         WHERE 
           v.title ILIKE $1 
           OR a.artifactName ILIKE $1 
           OR r.organization ILIKE $1 
-          OR p.phase::TEXT ILIKE $1   -- ENUM to text
-          OR eff.effectName::TEXT ILIKE $1  -- ENUM to text
+          OR p.phase::TEXT ILIKE $1
+          OR eff.effectName::TEXT ILIKE $1
+        GROUP BY 
+          v.reportId, 
+          v.title, 
+          v.date_added,
+          a.artifactName,
+          r.organization,
+          p.phase,
+          eff.effectName
       `, [`%${query}%`]);
   
       res.json(result.rows);
@@ -491,4 +548,66 @@ exports.searchReports = async (req, res) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   };
+
+exports.getPendingReports = async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                v.reportid,
+                v.title,
+                v.date_added,
+                v.approval_status,
+                r.name AS reporterName,
+                r.organization AS reporterOrganization
+            FROM Vul_report v
+            JOIN Reporter r ON v.reporterId = r.reporterId
+            `
+        ); // WHERE approval_status = $1`, ['pending']
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
   
+exports.reviewReport = async (req, res) => {
+    const { id } = req.params;
+    const { approval_status, review_comments } = req.body;
+
+    try {
+        // Extract adminId from the token (assuming you are using JWT)
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Use your actual secret key
+        const adminId = decoded.id;
+    
+        // Fetch the user data to confirm admin status
+        const userData = await fetchUserById(adminId);
+    
+        if (!userData || userData.role !== 'admin') {
+          return res.status(403).json({ message: 'Access denied: Admins only' });
+        }
+    
+        const reportResult = await pool.query('SELECT * FROM Vul_report WHERE reportId = $1', [id]);
+    
+        if (reportResult.rows.length === 0) {
+          return res.status(404).json({ error: 'Report not found' });
+        }
+    
+        await pool.query(
+          'UPDATE Vul_report SET approval_status = $1 WHERE reportId = $2',
+          [approval_status, id]
+        );
+    
+        if (approval_status !== 'pending') {
+          await pool.query(
+            'INSERT INTO Admin_review (reportId, adminId, review_comments) VALUES ($1, $2, $3)',
+            [id, adminId, review_comments || '']
+          );
+        }
+    
+        res.json({ message: `Report ${approval_status}` });
+      } catch (err) {
+        console.error('Error during report review:', err.message);
+        res.status(500).json({ error: 'Internal server error' });
+      }
+    };

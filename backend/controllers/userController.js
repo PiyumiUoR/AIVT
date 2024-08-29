@@ -131,26 +131,52 @@ exports.findUserByEmail = async (req, res) => {
     }
 };
 
-exports.getCurrentUser = async (req, res) => {
+// Helper function to fetch user by ID
+exports.fetchUserById = async (id) => {
     try {
-        // From authMiddleware
-        const userId = req.user.id;
-
         const result = await pool.query(
-            'SELECT reporterId AS id, name, email, organization FROM Reporter WHERE reporterId = $1',
-            [userId]
+            'SELECT reporterId AS id, name, email, organization, role FROM Reporter WHERE reporterId = $1',
+            [id]
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'User not found' });
+            throw new Error('User not found');
         }
 
-        const user = result.rows[0];
-        res.json(user);
+        return result.rows[0];
+    } catch (err) {
+        console.error('Error fetching user by ID:', err.message);
+        throw new Error('Internal server error');
+    }
+};
 
+exports.getCurrentUser = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await this.fetchUserById(userId);  
+
+        res.json(user);
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
 
+
+exports.updateUserRole = async (req, res) => {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    try {
+        const result = await pool.query('UPDATE Reporter SET role = $1 WHERE reporterId = $2 RETURNING *', [role, id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};

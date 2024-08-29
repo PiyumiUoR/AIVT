@@ -1,15 +1,13 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Header.css'; 
 import axios from 'axios';
 
 const Header = ({ scrollToWelcome }) => {
-    const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState(''); 
     const [searchResults, setSearchResults] = useState([]);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
-    const searchBarRef = useRef(null);
     const navigate = useNavigate();
 
     const syncTokenState = useCallback(() => {
@@ -62,27 +60,6 @@ const Header = ({ scrollToWelcome }) => {
         }
     };
 
-    const toggleSearchBar = () => {
-        setIsSearchBarVisible(prevState => !prevState);
-    };
-
-    const handleClickOutside = (event) => {
-        if (searchBarRef.current && !searchBarRef.current.contains(event.target)) {
-            setIsSearchBarVisible(false);
-        }
-    };
-
-    useEffect(() => {
-        if (isSearchBarVisible) {
-            document.addEventListener('mousedown', handleClickOutside);
-        } else {
-            document.removeEventListener('mousedown', handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isSearchBarVisible]);
-
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value); 
     };
@@ -93,7 +70,7 @@ const Header = ({ scrollToWelcome }) => {
     };
 
     const sanitizeInput = (input) => {
-        return input.replace(/<[^>]*>/g, ''); // Strip HTML tags
+        return input.replace(/<[^>]*>/g, ''); 
     };
 
     const sanitizeHtml = (input) => {
@@ -102,25 +79,24 @@ const Header = ({ scrollToWelcome }) => {
         return element.innerHTML;
     };
 
-    const handleSearchSubmit = async (e) => {
+    const handleSearchSubmit = (e) => {
         e.preventDefault();
+    
         let sanitizedQuery = sanitizeInput(searchQuery); 
         if (sanitizedQuery.trim()) {
             if (!validateSearchQuery(sanitizedQuery)) {
                 alert('Invalid search query. Please use only letters and numbers.');
                 return;
             }
-            try {
-                const response = await axios.get(`/api/vulnerabilities/search/`, { params: { query: sanitizedQuery } });
-                setSearchResults(response.data);
-            } catch (err) {
-                console.error('Error fetching search results:', err);
-            }
+    
+            navigate(`/vulnerabilities/search-results?query=${encodeURIComponent(sanitizedQuery)}`);
         }
     };
+    
 
     const handleResultClick = () => {
-        setIsSearchBarVisible(false);
+        setSearchQuery('');
+        setSearchResults([]);
     };
 
     return (
@@ -131,6 +107,18 @@ const Header = ({ scrollToWelcome }) => {
                     <h1 className="logo">AIVT</h1>
                 </Link>
                 </div>
+                <form className="search-bar" onSubmit={handleSearchSubmit}>
+                    <input
+                        type="search"
+                        placeholder="Search vulnerability"
+                        className="vulnerability-search"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                    />
+                    <span className="search-icon" onClick={handleSearchSubmit}>
+                        <i className="fas fa-search"></i>
+                    </span>
+                </form>
                 <div className="header-icons">
                     <Link to="/" className="icon home-icon" onClick={scrollToWelcome}>
                         <i className="fas fa-home"></i> 
@@ -167,10 +155,6 @@ const Header = ({ scrollToWelcome }) => {
                         <i className="fab fa-github"></i>
                         <span className="hover-text">Git repo</span>
                     </span>  
-                    <Link className="icon search" onClick={toggleSearchBar}>
-                        <i className="fas fa-search"></i> 
-                        <span className="hover-text">Search</span>
-                    </Link>
                     {isLoggedIn && (
                         <Link 
                             className="icon logout-icon" 
@@ -183,27 +167,15 @@ const Header = ({ scrollToWelcome }) => {
                     )}
                 </div>
             </div>
-            {isSearchBarVisible && (
-                <div className="search-bar" ref={searchBarRef}>
-                    <form onSubmit={handleSearchSubmit}>
-                        <input 
-                            type="text" 
-                            placeholder="Search for vulnerability" 
-                            className="vulnerability-search" 
-                            value={searchQuery}
-                            onChange={handleSearchChange}
-                        />
-                        <button type="submit">Search</button>
-                    </form>
-                    <div className="search-results">
-                        {searchResults.map(result => (
-                            <div key={result.id} className="search-result-item">
-                                <Link to={`/vulnerabilities/${result.id}`} onClick={handleResultClick}>
-                                    {sanitizeHtml(result.title)}
-                                </Link>
-                            </div>
-                        ))}
-                    </div>
+            {searchResults.length > 0 && (
+                <div className="search-results">
+                    {searchResults.map(result => (
+                        <div key={result.id} className="search-result-item">
+                            <Link to={`/vulnerabilities/${result.id}`} onClick={handleResultClick}>
+                                {sanitizeHtml(result.title)}
+                            </Link>
+                        </div>
+                    ))}
                 </div>
             )}
         </header>

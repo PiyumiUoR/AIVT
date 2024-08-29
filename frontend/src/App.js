@@ -7,7 +7,10 @@ import EditVulnerability from './EditVulnerability';
 import DeleteVulnerability from './DeleteVulnerability';
 import Vulnerabilities from './Vulnerabilities';
 import VulnerabilityDetail from './VulnerabilityDetail';
-import ProtectedRoute from './ProtectedRoute'; // authentication
+import SearchResults from './SearchResults';
+import ProtectedRoute from './ProtectedRoute'; 
+import ReviewVulnerability from './ReviewVulnerability';
+import PendingList from './PendingList';
 import Login from './Login';
 import Signup from './Signup';
 import Header from './Header';
@@ -16,8 +19,6 @@ import Footer from './Footer';
 const App = () => {
   const searchRef = useRef(null);
   const welcomeRef = useRef(null);
-  // const [totalRecords, setTotalRecords] = useState(0);
-  // const [data, setData] = useState();
 
   const scrollToWelcome = () => {
     if (welcomeRef.current) {
@@ -64,17 +65,16 @@ const App = () => {
             </main>
           } />
           <Route path='/vulnerabilities/' element={<Vulnerabilities />} />
-          <Route path="/vulnerabilities/:id/" element={<VulnerabilityDetail />} />
+          <Route path="/vulnerabilities/search-results" element={<SearchResults />} />
+          <Route path="/vulnerabilities/pending" element={<ProtectedRoute element={PendingList} roles={['admin']} />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-
+          <Route path="/signup" element={<Signup />} />          
           <Route path="/vulnerabilities/add/" element={<ProtectedRoute element={ReportVulnerability} />} />
+          <Route path="/vulnerabilities/:id/review/" element={<ProtectedRoute element={ReviewVulnerability} />} />          
           <Route path="/vulnerabilities/:id/edit/" element={<ProtectedRoute element={EditVulnerability} />} />
           <Route path="/vulnerabilities/:id/delete/" element={<ProtectedRoute element={DeleteVulnerability} />} />
-
-          {/* <Route path="/vulnerabilities/add/" element={<ReportVulnerability />} />
-          <Route path="/vulnerabilities/:id/edit/" element={<EditVulnerability />} />
-          <Route path="/vulnerabilities/:id/delete/" element={<DeleteVulnerability />} /> */}          
+          <Route path="/vulnerabilities/:id/" element={<VulnerabilityDetail />} />
+          
         </Routes>        
       </div>
     </Router>

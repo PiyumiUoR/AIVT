@@ -41,3 +41,30 @@
 .vulnerability-list a:hover {
   text-decoration: underline;
 }
+
+.filters {
+  margin-bottom: 20px;
+}
+
+.filters label {
+  margin-right: 20px;
+}
+
+.filters select {
+  padding: 5px;
+  margin-left: 10px;
+}
+
+.clear-filters-button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 1em;
+  padding: 10px;
+}
+
+.clear-filters-button:hover {
+  text-decoration: underline;
+}
+

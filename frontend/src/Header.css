@@ -1,5 +1,5 @@
 .app-header {
-  background-color: #dadada; /* Darker shade for professionalism */
+  background-color: #dadada;
   color: black;
   padding: 0 30px;
   position: fixed;
@@ -9,8 +9,8 @@
   z-index: 1000;
   display: flex;
   align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
-  font-family: Monaco, monospace; 
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-family: Monaco, monospace;
 }
 
 .header-container {
@@ -19,6 +19,7 @@
   align-items: center;
   width: 100%;
   margin: auto;
+  position: relative;
 }
 
 .logo-container {
@@ -26,31 +27,72 @@
 }
 
 .logo {
-  font-size: 28px; 
+  font-size: 28px;
   font-weight: bold;
-  text-align: left; 
+  text-align: left;
 }
 
-.nav-buttons {
+.search-bar {
   display: flex;
-  gap: 20px; 
+  align-items: center;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
-.nav-button {
-  color: white;
-  text-decoration: none;
-  background-color: transparent; 
-  border: 1px solid transparent; 
-  padding: 8px 16px;
+.search-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* background-color: #2980b9;  */
+  color: rgb(0, 0, 0);
+  padding: 8px 12px; 
   border-radius: 4px; 
   cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s, border-color 0.3s; 
+  transition: background-color 0.3s;
+  margin-left: 8px;
 }
 
-.nav-button:hover {
-  background-color: #2980b9; 
-  border-color: #2980b9; 
+.search-icon:hover {
+  background-color: #1f6a9b; 
+}
+
+.search-icon i {
+  font-size: 16px;
+}
+
+/* .clear-icon {
+  position: absolute;
+  right: 40px; 
+  cursor: pointer;
+  color: #ccc;
+  font-size: 14px;
+}
+
+.clear-icon:hover {
+  color: #ff0000; 
+}
+ */
+
+.vulnerability-search {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 60%;
+  font-size: 14px;
+  background-color: #f9f9f9;
+  color: #333;
+  font-family: inherit;
+  margin-right: 10px;
+}
+
+.vulnerability-search:focus {
+  border-color: #2980b9;
+  outline: none;
+  background-color: #fff;
+}
+
+::placeholder {
+  color: #aaa;
 }
 
 .header-icons {
@@ -67,7 +109,7 @@
 .header-icons .icon .hover-text {
   visibility: hidden;
   opacity: 0;
-  background-color: #2c3e50; 
+  background-color: #2c3e50;
   color: #fff;
   text-align: center;
   font-size: small;
@@ -97,57 +139,32 @@
   border-color: transparent transparent #2c3e50 transparent;
 }
 
-.search-bar {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%); 
-  width: 50%;
-  background-color: white;
-  padding: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border-radius: 4px; 
-  z-index: 1001; 
-}
-
-.vulnerability-search {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  width: 100%;
-  font-size: 14px; 
-  background-color: #f9f9f9;
-  color: #333;
-  font-family: inherit;
-}
-
-.vulnerability-search:focus {
-  border-color: #2980b9; 
-  outline: none;
-  background-color: #fff;
-}
-
-::placeholder {
-  color: #aaa; 
-}
-
 .search-results {
-  margin-top: 10px;
+  position: absolute;
+  top: 100%; /* Position right below the search bar */
+  left: 0;
+  width: 100%; /* Match the width of the search bar */
   background-color: #fff;
   border: 1px solid #ddd;
   max-height: 200px;
   overflow-y: auto;
+  z-index: 1001; /* Ensure it stays above other elements */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Add a shadow for better visibility */
 }
 
 .search-result-item {
   padding: 10px;
   border-bottom: 1px solid #eee;
+  cursor: pointer; /* Make it clear the items are clickable */
 }
 
 .search-result-item a {
   text-decoration: none;
   color: #333;
+  display: block; /* Make the entire item clickable */
 }
 
 .search-result-item a:hover {
   text-decoration: underline;
+  background-color: #f5f5f5; /* Add a hover effect */
 }
