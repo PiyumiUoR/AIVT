@@ -10,6 +10,7 @@ import VulnerabilityDetail from './VulnerabilityDetail';
 import SearchResults from './SearchResults';
 import ProtectedRouteReporter from './ProtectedRouteReporter'; 
 import ReviewVulnerability from './ReviewVulnerability';
+import ProtectedRouteAdmin from './ProtectedRouteAdmin';
 import PendingList from './PendingList';
 import Login from './Login';
 import Signup from './Signup';
@@ -66,7 +67,7 @@ const App = () => {
           } />
           <Route path='/vulnerabilities/' element={<Vulnerabilities />} />
           <Route path="/vulnerabilities/search-results" element={<SearchResults />} />
-          <Route path="/vulnerabilities/pending" element={<ProtectedRouteReporter element={PendingList} role={['admin']} />} />
+          <Route path="/vulnerabilities/pending" element={<ProtectedRouteAdmin element={PendingList} role={['admin']} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />          
           <Route path="/vulnerabilities/add/" element={<ProtectedRouteReporter element={ReportVulnerability} />} />
