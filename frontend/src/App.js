@@ -8,7 +8,7 @@ import DeleteVulnerability from './DeleteVulnerability';
 import Vulnerabilities from './Vulnerabilities';
 import VulnerabilityDetail from './VulnerabilityDetail';
 import SearchResults from './SearchResults';
-import ProtectedRoute from './ProtectedRoute'; 
+import ProtectedRouteReporter from './ProtectedRouteReporter'; 
 import ReviewVulnerability from './ReviewVulnerability';
 import PendingList from './PendingList';
 import Login from './Login';
@@ -66,13 +66,13 @@ const App = () => {
           } />
           <Route path='/vulnerabilities/' element={<Vulnerabilities />} />
           <Route path="/vulnerabilities/search-results" element={<SearchResults />} />
-          <Route path="/vulnerabilities/pending" element={<ProtectedRoute element={PendingList} roles={['admin']} />} />
+          <Route path="/vulnerabilities/pending" element={<ProtectedRouteReporter element={PendingList} role={['admin']} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />          
-          <Route path="/vulnerabilities/add/" element={<ProtectedRoute element={ReportVulnerability} />} />
-          <Route path="/vulnerabilities/:id/review/" element={<ProtectedRoute element={ReviewVulnerability} />} />          
-          <Route path="/vulnerabilities/:id/edit/" element={<ProtectedRoute element={EditVulnerability} />} />
-          <Route path="/vulnerabilities/:id/delete/" element={<ProtectedRoute element={DeleteVulnerability} />} />
+          <Route path="/vulnerabilities/add/" element={<ProtectedRouteReporter element={ReportVulnerability} />} />
+          <Route path="/vulnerabilities/:id/review/" element={<ProtectedRouteReporter element={ReviewVulnerability} />} />          
+          <Route path="/vulnerabilities/:id/edit/" element={<ProtectedRouteReporter element={EditVulnerability} />} />
+          <Route path="/vulnerabilities/:id/delete/" element={<ProtectedRouteReporter element={DeleteVulnerability} />} />
           <Route path="/vulnerabilities/:id/" element={<VulnerabilityDetail />} />
           
         </Routes>        
