@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import jwtDecode from 'jwt-decode';
+import { decode } from 'jwt-decode';
 
 const ProtectedRoute = ({ element: Component, roles = [] }) => {
     const token = localStorage.getItem('token'); 
@@ -11,7 +11,7 @@ const ProtectedRoute = ({ element: Component, roles = [] }) => {
     }
 
     try {
-      const decodedToken = jwtDecode(token);
+      const decodedToken = decode(token);
       const userRole = decodedToken.role; 
   
       if (!roles.includes(userRole)) {
