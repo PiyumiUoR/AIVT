@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 exports.getAllReports = async (req, res) => {
     const { phase, attribute, effect, startDate, endDate } = req.query;
 
+    // Base query
     let query = `
         SELECT 
             vr.reportId AS id, 
@@ -27,33 +28,36 @@ exports.getAllReports = async (req, res) => {
         WHERE vr.approval_status = 'approved'
     `;
 
+    // Array to store query parameters
     const params = [];
-    
+
+    // Conditionally add filters
     if (phase) {
-        query += ` AND vp.phase = $${params.length + 1}`;
         params.push(phase);
+        query += ` AND vp.phase = $${params.length}`;
     }
-    
+
     if (attribute) {
-        query += ` AND an.attributeName = $${params.length + 1}`;
         params.push(attribute);
+        query += ` AND an.attributeName = $${params.length}`;
     }
 
     if (effect) {
-        query += ` AND e.effectName = $${params.length + 1}`;
         params.push(effect);
+        query += ` AND e.effectName = $${params.length}`;
     }
 
     if (startDate) {
-        query += ` AND vr.date_added >= $${params.length + 1}`;
         params.push(startDate);
+        query += ` AND vr.date_added >= $${params.length}`;
     }
 
     if (endDate) {
-        query += ` AND vr.date_added <= $${params.length + 1}`;
         params.push(endDate);
+        query += ` AND vr.date_added <= $${params.length}`;
     }
 
+    // Final GROUP BY clause (placed after all conditions)
     query += `
         GROUP BY 
             vr.reportId, 
@@ -61,10 +65,12 @@ exports.getAllReports = async (req, res) => {
             a.artifactName, 
             vr.date_added, 
             e.effectName, 
-            vp.phase
+            vp.phase,
+            vr.approval_status
     `;
 
     try {
+        // Execute the query with the built query string and parameters
         const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (err) {
@@ -72,6 +78,7 @@ exports.getAllReports = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
 
 
 exports.createReport = async (req, res) => {

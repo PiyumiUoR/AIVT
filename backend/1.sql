@@ -19,7 +19,17 @@ CREATE DATABASE aivtdb
 -- Create ENUM types
 CREATE TYPE phase_enum AS ENUM ('Development', 'Training', 'Deployment and Use');
 CREATE TYPE attribute_enum AS ENUM ('Accuracy', 'Fairness', 'Privacy', 'Reliability', 'Resiliency', 'Robustness', 'Safety');
-CREATE TYPE effect_enum AS ENUM ('0: Correct functioning', '1: Reduced functioning', '2: No actions', '3: Random actions', '4: Directed actions', '5: Random actions OoB', '6: Directed actions OoB');
+-- CREATE TYPE effect_enum AS ENUM ('0: Correct functioning', '1: Reduced functioning', '2: No actions', '3: Random actions', '4: Directed actions', '5: Random actions OoB', '6: Directed actions OoB');
+
+CREATE TYPE effect_enum AS ENUM ('0: Correct functioning', '1: Reduced functioning', '2: No actions', '3: Chaotic', '4: Directed actions', '5: Random actions OoB', '6: Directed actions OoB');
+
+ALTER TABLE Effect
+ALTER COLUMN effectName TYPE new_effect_enum
+USING effectName::text::new_effect_enum;
+
+DROP TYPE effect_enum ;
+ALTER TYPE new_effect_enum RENAME TO effect_enum;
+
 
 -- Create table Reporter
 CREATE TABLE Reporter (
@@ -29,7 +39,7 @@ CREATE TABLE Reporter (
     organization VARCHAR(255),
 	salt VARCHAR(255),
 	password VARCHAR(255),
-	role VARCHAR(50) DEFAULT 'reporter',
+	role VARCHAR(50) DEFAULT 'reporter'
 );
 
 ALTER TABLE Reporter
@@ -42,16 +52,7 @@ ADD COLUMN date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
 ALTER TABLE Vul_report ADD COLUMN approval_status VARCHAR(50) DEFAULT 'pending';
 
--- Create table Admin_review
-CREATE TABLE Admin_review (
-    reviewId SERIAL PRIMARY KEY,
-    reportId INTEGER,
-    adminId INTEGER,
-    review_comments VARCHAR(510),
-    review_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (reportId) REFERENCES Vul_report(reportId),
-    FOREIGN KEY (adminId) REFERENCES Reporter(reporterId) -- Assuming admins are also stored in the Reporter table
-);
+
 
 -- Create table Vul_report
 CREATE TABLE Vul_report (
@@ -62,6 +63,17 @@ CREATE TABLE Vul_report (
     reporterId INTEGER, 
 	approval_status VARCHAR(50) DEFAULT 'pending',
     FOREIGN KEY (reporterId) REFERENCES Reporter(reporterId)
+);
+
+-- Create table Admin_review
+CREATE TABLE Admin_review (
+    reviewId SERIAL PRIMARY KEY,
+    reportId INTEGER,
+    adminId INTEGER,
+    review_comments VARCHAR(510),
+    review_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (reportId) REFERENCES Vul_report(reportId),
+    FOREIGN KEY (adminId) REFERENCES Reporter(reporterId) 
 );
 
 -- Create table Artifact

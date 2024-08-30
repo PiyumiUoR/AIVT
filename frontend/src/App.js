@@ -65,16 +65,16 @@ const App = () => {
               </div>
             </main>
           } />
-          <Route path='/vulnerabilities/' element={<Vulnerabilities />} />
           <Route path="/vulnerabilities/search-results" element={<SearchResults />} />
           <Route path="/vulnerabilities/pending" element={<ProtectedRouteAdmin element={PendingList} role={['admin']} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />          
           <Route path="/vulnerabilities/add/" element={<ProtectedRouteReporter element={ReportVulnerability} />} />
-          <Route path="/vulnerabilities/:id/review/" element={<ProtectedRouteReporter element={ReviewVulnerability} />} />          
+          <Route path="/vulnerabilities/:id/review/" element={<ProtectedRouteAdmin element={ReviewVulnerability} />} />          
           <Route path="/vulnerabilities/:id/edit/" element={<ProtectedRouteReporter element={EditVulnerability} />} />
           <Route path="/vulnerabilities/:id/delete/" element={<ProtectedRouteReporter element={DeleteVulnerability} />} />
           <Route path="/vulnerabilities/:id/" element={<VulnerabilityDetail />} />
+          <Route path='/vulnerabilities/' element={<Vulnerabilities />} />
           
         </Routes>        
       </div>
